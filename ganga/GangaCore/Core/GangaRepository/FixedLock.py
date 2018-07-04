@@ -50,7 +50,8 @@ class FixedLockManager(object):
     This explicitly forbids multiple parallel Ganga sessions.
     """
 
-    __slots__ = ('sync_lock', 'locked', 'repo', 'cntfn', 'global_lock', 'count')
+    # __slots__ = ('sync_lock', 'locked', 'repo', 'cntfn', 'global_lock', 'count')
+    __slots__ = ('sync_lock', 'locked', 'repo', 'cntfn', 'count')
 
     def __init__(self, repo, root, name, minimum_count=0):
 
@@ -74,15 +75,15 @@ class FixedLockManager(object):
             os.mkdir(sessions_folder) 
 
         # Location of fixed lock for this repo
-        self.global_lock = os.path.join(sessions_folder, '%s_fixed_lock' % name)
+        # self.global_lock = os.path.join(sessions_folder, '%s_fixed_lock' % name)
         self.count = minimum_count
-        if os.path.exists(self.global_lock):
-            msg = "\n\nCannot start this registry: %s due to a lock file already existing: '%s'\n" % (name, self.global_lock)
-            msg += "If you are trying to run only 1 ganga session please remove this file and re-launch ganga\n"
-            raise RepositoryError(repo, msg)
+        # if os.path.exists(self.global_lock):
+        #     msg = "\n\nCannot start this registry: %s due to a lock file already existing: '%s'\n" % (name, self.global_lock)
+        #     msg += "If you are trying to run only 1 ganga session please remove this file and re-launch ganga\n"
+        #     raise RepositoryError(repo, msg)
 
-        with open(self.global_lock, 'w'):
-            pass
+        # with open(self.global_lock, 'w'):
+        #     pass
 
     @lock_synch
     def mkdir(self, dn):                                                                                                                                                                                           
@@ -104,8 +105,9 @@ class FixedLockManager(object):
         pass
 
     def shutdown(self):
-        """Shutdown the thread and locking system (on ganga shutdown or repo error)"""
-        os.unlink(self.global_lock)
+        # """Shutdown the thread and locking system (on ganga shutdown or repo error)"""
+        # os.unlink(self.global_lock)
+        pass
     
     def session_read(self, fn):
         return set()
