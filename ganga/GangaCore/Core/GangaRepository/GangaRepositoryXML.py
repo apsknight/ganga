@@ -552,8 +552,8 @@ class GangaRepositoryLocal(GangaRepository):
             if this_id > self.sessionlock.count:
                 self.sessionlock.count = this_id + 1
             # Locked IDs can be ignored
-            if this_id in locked_ids:
-                continue
+            # if this_id in locked_ids:
+            #     continue
             # Skip corrupt IDs
             if this_id in self.incomplete_objects:
                 continue
@@ -1136,7 +1136,8 @@ class GangaRepositoryLocal(GangaRepository):
         Args:
             ids (list): The object keys which we want to iterate over from the objects dict
         """
-        return self.sessionlock.lock_ids(ids)
+        # return self.sessionlock.lock_ids(ids)
+        pass
 
     def unlock(self, ids):
         """

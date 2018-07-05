@@ -51,7 +51,7 @@ class FixedLockManager(object):
     """
 
     # __slots__ = ('sync_lock', 'locked', 'repo', 'cntfn', 'global_lock', 'count')
-    __slots__ = ('sync_lock', 'locked', 'repo', 'cntfn', 'count')
+    # __slots__ = ('sync_lock', 'locked', 'repo', 'cntfn', 'count')
 
     def __init__(self, repo, root, name, minimum_count=0):
 
@@ -70,9 +70,9 @@ class FixedLockManager(object):
         self.cntfn = os.path.join(realpath, name, "cnt")
 
         # Required for lock files
-        sessions_folder = os.path.join(realpath, "sessions")
-        if not os.path.exists(sessions_folder):
-            os.mkdir(sessions_folder) 
+        # sessions_folder = os.path.join(realpath, "sessions")
+        # if not os.path.exists(sessions_folder):
+        #     os.mkdir(sessions_folder) 
 
         # Location of fixed lock for this repo
         # self.global_lock = os.path.join(sessions_folder, '%s_fixed_lock' % name)

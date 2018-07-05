@@ -651,6 +651,10 @@ class JobRegistry_Monitor(GangaThread):
         """
 
         log.debug("runMonitoring")
+        # stripProxy(self.registry_slice).objects.itervalues().next().repository.update_index(True, True)
+        tfh = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+        # stripProxy(self.registry_slice).objects.itervalues()
+        print "New Jobs", tfh
 
         if not isType(steps, int) and steps < 0:
             log.warning("The number of monitor steps should be a positive (non-zero) integer")
@@ -943,7 +947,8 @@ class JobRegistry_Monitor(GangaThread):
         active_backends = {}
         # FIXME: this is not thread safe: if the new jobs are added then
         # iteration exception is raised
-        stripProxy(self.registry_slice).objects.itervalues().next().repository.update_index(True, True)
+        # stripProxy(self.registry_slice).objects.itervalues().next().repository.update_index(True, True)
+        tfh = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
         fixed_ids = self.registry_slice.ids()
         #log.debug("Registry: %s" % str(self.registry_slice))
         log.debug("Running over fixed_ids: %s" % str(fixed_ids))
