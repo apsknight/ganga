@@ -639,6 +639,7 @@ class GangaRepositoryLocal(GangaRepository):
             isShutdown = not firstRun
             self._write_master_cache(isShutdown)
 
+        self.load(changed_ids)
         return changed_ids
 
     def add(self, objs, force_ids=None):
@@ -855,10 +856,10 @@ class GangaRepositoryLocal(GangaRepository):
         """
 
         # If this_id is not in the objects add the object we got from reading the XML
-        print '>fn', fn
-        print '>this_id', this_id
-        print '>load_backup', load_backup
-        print '>has_children', has_children
+        # print '>fn', fn
+        # print '>this_id', this_id
+        # print '>load_backup', load_backup
+        # print '>has_children', has_children
 
         need_to_copy = True
         if this_id not in self.objects:
@@ -867,7 +868,7 @@ class GangaRepositoryLocal(GangaRepository):
 
         obj = self.objects[this_id]
         # print '>obj', obj
-        print '>need_to_copy', need_to_copy
+        # print '>need_to_copy', need_to_copy
         # If the object was already in the objects (i.e. cache object, replace the schema content wilst avoiding R/O checks and such
         # The end goal is to keep the object at this_id the same object in memory but to make it closer to tmpobj.
         # TODO investigate changing this to copyFrom
@@ -879,7 +880,7 @@ class GangaRepositoryLocal(GangaRepository):
                 if attr_name not in tmpobj._data:
                     obj.setSchemaAttribute(attr_name, obj._schema.getDefaultValue(attr_name))
 
-        print '>has_children', has_children
+        # print '>has_children', has_children
 
         if has_children:
             logger.debug("Adding children")
@@ -893,22 +894,22 @@ class GangaRepositoryLocal(GangaRepository):
                     from GangaCore.GPIDev.Lib.GangaList.GangaList import GangaList
                     def_val = GangaList()
                 obj.setSchemaAttribute(self.sub_split, def_val)
-        print 'check1'
+        # print 'check1'
         from GangaCore.GPIDev.Base.Objects import do_not_copy
         for node_key, node_val in obj._data.items():
             if isType(node_val, Node):
                 if node_key not in do_not_copy:
                     node_val._setParent(obj)
-        print 'check2'
+        # print 'check2'
         # Check if index cache; if loaded; was valid:
         if obj._index_cache not in [{}]:
             self._check_index_cache(obj, this_id)
-        print 'check3'
+        # print 'check3'
         obj._index_cache = {}
 
         if this_id not in self._fully_loaded:
             self._fully_loaded[this_id] = obj
-        print 'check4'
+        # print 'check4'
 
     def _load_xml_from_obj(self, fobj, fn, this_id, load_backup):
         """
@@ -921,7 +922,7 @@ class GangaRepositoryLocal(GangaRepository):
             load_backup (bool): This reflects whether we are loading the backup 'data~' or normal 'data' XML file
         """
         # print '>', fobj, fn, this_id, load_backup
-        print '>', load_backup
+        # print '>', load_backup
         b4=time.time()
         tmpobj, errs = self.from_file(fobj)
         a4=time.time()
@@ -1054,7 +1055,6 @@ class GangaRepositoryLocal(GangaRepository):
             except Exception as err:
                 
                 should_continue = self._handle_load_exception(err, fn, this_id, load_backup)
-                print should_continue, 'Aman'
                 if should_continue is True:
                     has_loaded_backup = True
                     continue
