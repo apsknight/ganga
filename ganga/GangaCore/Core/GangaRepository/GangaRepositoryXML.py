@@ -206,6 +206,7 @@ class GangaRepositoryLocal(GangaRepository):
         self._cache_load_timestamp = {}
         self.printed_explanation = False
         self._fully_loaded = {}
+        self.newly_added = []
 
     def startup(self):
         """ Starts a repository and reads in a directory structure.
@@ -533,6 +534,10 @@ class GangaRepositoryLocal(GangaRepository):
             verbose (bool): Should we be verbose
             firstRun (bool): If this is the call from the Repo startup then load the master index for perfomance boost
         """
+
+        if len(self.newly_added) > 0:
+            self.load(self.newly_added)
+
         # First locate and load the index files
         logger.debug("updating index...")
         objs = self.get_index_listing()
@@ -640,6 +645,7 @@ class GangaRepositoryLocal(GangaRepository):
             self._write_master_cache(isShutdown)
 
         self.load(changed_ids)
+        self.newly_added = self.newly_added + changed_ids
         return changed_ids
 
     def add(self, objs, force_ids=None):
