@@ -535,8 +535,8 @@ class GangaRepositoryLocal(GangaRepository):
             firstRun (bool): If this is the call from the Repo startup then load the master index for perfomance boost
         """
 
-        if len(self.newly_added) > 0:
-            self.load(self.newly_added)
+        # if len(self.newly_added) > 0:
+        #     self.load(self.newly_added)
 
         # First locate and load the index files
         logger.debug("updating index...")
@@ -644,8 +644,8 @@ class GangaRepositoryLocal(GangaRepository):
             isShutdown = not firstRun
             self._write_master_cache(isShutdown)
 
-        self.load(changed_ids)
-        self.newly_added = self.newly_added + changed_ids
+        # self.load(changed_ids)
+        # self.newly_added = self.newly_added + changed_ids
         return changed_ids
 
     def add(self, objs, force_ids=None):

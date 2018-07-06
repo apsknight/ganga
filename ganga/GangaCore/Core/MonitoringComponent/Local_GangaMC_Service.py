@@ -523,6 +523,9 @@ class JobRegistry_Monitor(GangaThread):
 
         self._runningNow = False
 
+        # List of newly discovered jobs after starting of session
+        self.newly_discovered_jobs = []
+
     def isEnabled( self, useRunning = True ):
         if useRunning:
             return self.enabled or self.__isInProgress() and not self.steps
@@ -652,8 +655,15 @@ class JobRegistry_Monitor(GangaThread):
 
         log.debug("runMonitoring")
         # stripProxy(self.registry_slice).objects.itervalues().next().repository.update_index(True, True)
-        stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+        new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
         # stripProxy(self.registry_slice).objects.itervalues()
+        self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
+
+        for i in self.newly_discovered_jobs:
+            j = stripProxy(self.registry_slice(i))
+            job_status = lazyLoadJobStatus(j)
+            if job_status in ['new']:
+                stripProxy(self.registry_slice).objects.repository.load([i])
 
         if not isType(steps, int) and steps < 0:
             log.warning("The number of monitor steps should be a positive (non-zero) integer")
@@ -947,7 +957,15 @@ class JobRegistry_Monitor(GangaThread):
         # FIXME: this is not thread safe: if the new jobs are added then
         # iteration exception is raised
         # stripProxy(self.registry_slice).objects.itervalues().next().repository.update_index(True, True)
-        stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+        new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+        self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
+
+        for i in self.newly_discovered_jobs:
+            j = stripProxy(self.registry_slice(i))
+            job_status = lazyLoadJobStatus(j)
+            if job_status in ['new']:
+                stripProxy(self.registry_slice).objects.repository.load([i]
+
         fixed_ids = self.registry_slice.ids()
         #log.debug("Registry: %s" % str(self.registry_slice))
         log.debug("Running over fixed_ids: %s" % str(fixed_ids))
