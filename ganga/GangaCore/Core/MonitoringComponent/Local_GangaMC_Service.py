@@ -971,6 +971,7 @@ class JobRegistry_Monitor(GangaThread):
 
                 if job_status in ['new']:
                     stripProxy(self.registry_slice).objects.repository.load([i])
+                    print lazyLoadJobStatus(j)
 
                 if job_status in ['submitted', 'running'] or (j.master and (job_status in ['submitting'])):
                     if self.enabled is True and self.alive is True:
