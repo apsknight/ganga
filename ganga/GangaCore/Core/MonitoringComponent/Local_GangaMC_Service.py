@@ -960,12 +960,6 @@ class JobRegistry_Monitor(GangaThread):
         new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
         self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
 
-        for i in self.newly_discovered_jobs:
-            j = stripProxy(self.registry_slice(i))
-            job_status = lazyLoadJobStatus(j)
-            if job_status in ['new']:
-                stripProxy(self.registry_slice).objects.repository.load([i]
-
         fixed_ids = self.registry_slice.ids()
         #log.debug("Registry: %s" % str(self.registry_slice))
         log.debug("Running over fixed_ids: %s" % str(fixed_ids))
@@ -974,6 +968,9 @@ class JobRegistry_Monitor(GangaThread):
                 j = stripProxy(self.registry_slice(i))
 
                 job_status = lazyLoadJobStatus(j)
+
+                if job_status in ['new']:
+                    stripProxy(self.registry_slice).objects.repository.load([i])
 
                 if job_status in ['submitted', 'running'] or (j.master and (job_status in ['submitting'])):
                     if self.enabled is True and self.alive is True:
