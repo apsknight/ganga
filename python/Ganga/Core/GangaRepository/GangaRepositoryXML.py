@@ -206,6 +206,7 @@ class GangaRepositoryLocal(GangaRepository):
         self._cache_load_timestamp = {}
         self.printed_explanation = False
         self._fully_loaded = {}
+        self.newly_added = []
 
     def startup(self):
         """ Starts a repository and reads in a directory structure.
@@ -533,6 +534,8 @@ class GangaRepositoryLocal(GangaRepository):
             verbose (bool): Should we be verbose
             firstRun (bool): If this is the call from the Repo startup then load the master index for perfomance boost
         """
+        # if len(self.newly_added) > 0:
+        #     self.load(self.newly_added)
         # First locate and load the index files
         logger.debug("updating index...")
         objs = self.get_index_listing()
@@ -552,8 +555,8 @@ class GangaRepositoryLocal(GangaRepository):
             if this_id > self.sessionlock.count:
                 self.sessionlock.count = this_id + 1
             # Locked IDs can be ignored
-            if this_id in locked_ids:
-                continue
+            # if this_id in locked_ids:
+                # continue
             # Skip corrupt IDs
             if this_id in self.incomplete_objects:
                 continue
@@ -583,15 +586,15 @@ class GangaRepositoryLocal(GangaRepository):
                     self.load([this_id])
                     changed_ids.append(this_id)
                     # Write out a new index if the file can be locked
-                    if len(self.lock([this_id])) != 0:
-                        if this_id not in self.incomplete_objects:
-                            # If object is loaded mark it dirty so next flush will regenerate XML,
-                            # otherwise just go about fixing it
-                            if not self.isObjectLoaded(self.objects[this_id]):
-                                self.index_write(this_id)
-                            else:
-                                self.objects[this_id]._setDirty()
-                        #self.unlock([this_id])
+                    # if len(self.lock([this_id])) != 0:
+                    if this_id not in self.incomplete_objects:
+                        # If object is loaded mark it dirty so next flush will regenerate XML,
+                        # otherwise just go about fixing it
+                        if not self.isObjectLoaded(self.objects[this_id]):
+                            self.index_write(this_id)
+                        else:
+                            self.objects[this_id]._setDirty()
+                    #self.unlock([this_id])
                 except KeyError as err:
                     logger.debug("update Error: %s" % err)
                     # deleted job
@@ -639,6 +642,8 @@ class GangaRepositoryLocal(GangaRepository):
             isShutdown = not firstRun
             self._write_master_cache(isShutdown)
 
+        # self.load(changed_ids)
+        # self.newly_added = self.newly_added + changed_ids
         return changed_ids
 
     def add(self, objs, force_ids=None):
@@ -813,29 +818,29 @@ class GangaRepositoryLocal(GangaRepository):
             logger.debug("NEW: %s" % new_idx_cache)
             logger.debug("OLD: %s" % obj._index_cache)
             # index is wrong! Try to get read access - then we can fix this
-            if len(self.lock([this_id])) != 0:
-                if this_id not in self.incomplete_objects:
-                    # Mark as dirty if loaded, otherwise load and fix
-                    if not self.isObjectLoaded(self.objects[this_id]):
-                        self.index_write(this_id)
-                    else:
-                        self.objects[this_id]._setDirty()
-                # self.unlock([this_id])
-
-                old_idx_subset = all((k in new_idx_cache and new_idx_cache[k] == v) for k, v in obj._index_cache.items())
-                if not old_idx_subset:
-                    # Old index cache isn't subset of new index cache
-                    new_idx_subset = all((k in obj._index_cache and obj._index_cache[k] == v) for k, v in new_idx_cache.items())
+            # if len(self.lock([this_id])) != 0:
+            if this_id not in self.incomplete_objects:
+                # Mark as dirty if loaded, otherwise load and fix
+                if not self.isObjectLoaded(self.objects[this_id]):
+                    self.index_write(this_id)
                 else:
-                    # Old index cache is subset of new index cache so no need to check
-                    new_idx_subset = True
+                    self.objects[this_id]._setDirty()
+            # self.unlock([this_id])
 
-                if not old_idx_subset and not new_idx_subset:
-                    logger.warning("Incorrect index cache of '%s' object #%s was corrected!" % (self.registry.name, this_id))
-                    logger.debug("old cache: %s\t\tnew cache: %s" % (obj._index_cache, new_idx_cache))
-                    self.unlock([this_id])
+            old_idx_subset = all((k in new_idx_cache and new_idx_cache[k] == v) for k, v in obj._index_cache.items())
+            if not old_idx_subset:
+                # Old index cache isn't subset of new index cache
+                new_idx_subset = all((k in obj._index_cache and obj._index_cache[k] == v) for k, v in new_idx_cache.items())
             else:
-                pass
+                # Old index cache is subset of new index cache so no need to check
+                new_idx_subset = True
+
+            if not old_idx_subset and not new_idx_subset:
+                logger.warning("Incorrect index cache of '%s' object #%s was corrected!" % (self.registry.name, this_id))
+                logger.debug("old cache: %s\t\tnew cache: %s" % (obj._index_cache, new_idx_cache))
+                # self.unlock([this_id])
+            # else:
+                # pass
                 # if we cannot lock this, the inconsistency is
                 # most likely the result of another ganga
                 # process modifying the repo
@@ -1136,7 +1141,8 @@ class GangaRepositoryLocal(GangaRepository):
         Args:
             ids (list): The object keys which we want to iterate over from the objects dict
         """
-        return self.sessionlock.lock_ids(ids)
+        pass
+        # return self.sessionlock.lock_ids(ids)
 
     def unlock(self, ids):
         """
