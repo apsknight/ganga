@@ -352,7 +352,7 @@ class Descriptor(object):
             return obj_data[name]
         except KeyError:
             pass
-
+    
         # Then try to get it from the index cache
         obj_index = obj._index_cache
         try:
