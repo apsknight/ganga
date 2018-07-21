@@ -20,7 +20,10 @@ from __future__ import print_function, absolute_import
 #  - special functions:
 #       - log_user_exception() allows to format nicely exception messages
 
-import cStringIO
+try:
+    import cStringIO
+except ImportError:
+    from io import StringIO as cStringIO
 import logging
 import logging.handlers
 import os.path
