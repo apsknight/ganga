@@ -314,21 +314,21 @@ class UpdateDict(object):
         #log.debug("*----addEntry()")
 
         backend = getName(backendObj)
-        if backend in self.table:
-            backendObj, jSet, lock = self.table[backend].updateActionTuple()
-        else:  # New backend.
-            self.table[backend] = _DictEntry(backendObj, set(jobList), threading.RLock(), timeoutMax)
-            # queue to get processed
-            Qin.put(JobAction(backendCheckingFunction, self.table[backend].updateActionTuple()))
-            log.debug("**Adding %s to new %s backend entry." % ([stripProxy(x).getFQID('.') for x in jobList], backend))
-            return True
+        # if backend in self.table:
+            # backendObj, jSet, lock = self.table[backend].updateActionTuple()
+        # else:  # New backend.
+        self.table[backend] = _DictEntry(backendObj, jobList, threading.RLock(), timeoutMax)
+        # queue to get processed
+        Qin.put(JobAction(backendCheckingFunction, self.table[backend].updateActionTuple()))
+        log.debug("**Adding %s to new %s backend entry." % ([stripProxy(x).getFQID('.') for x in jobList], backend))
+        return True
 
         # backend is in Qin waiting to be processed. Increase it's list of jobs
         # by updating the table entry accordingly. This will reduce the
         # number of update requests.
         # i.e. It's like getting a friend in the queue to pay for your
         # purchases as well! ;p
-        log.debug("*: backend=%s, isLocked=%s, isOwner=%s, joblist=%s, queue=%s" % (backend, lock._RLock__count, lock._is_owned(), [x.id for x in jobList], Qin.qsize()))
+        # log.debug("*: backend=%s, isLocked=%s, isOwner=%s, joblist=%s, queue=%s" % (backend, lock._RLock__count, lock._is_owned(), [x.id for x in jobList], Qin.qsize()))
         if lock.acquire(False):
             try:
                 jSetSize = len(jSet)
@@ -522,6 +522,8 @@ class JobRegistry_Monitor(GangaThread):
         self.stopIter.set()
 
         self._runningNow = False
+        # List of newly discovered jobs after starting of session
+        self.newly_discovered_jobs = []
 
     def isEnabled( self, useRunning = True ):
         if useRunning:
@@ -636,6 +638,17 @@ class JobRegistry_Monitor(GangaThread):
         self.__updateTimeStamp = time.time()
         self.__sleepCounter = config['base_poll_rate']
 
+    def reloadJob(self, i):
+        """
+        Reload a Job from disk.
+        Parameters:
+        i: Job ID
+        Return:
+            True, if Job is successfully reloaded from disk.
+        """
+        stripProxy(self.registry_slice).objects.repository.load([i])
+        return True
+
     def runMonitoring(self, jobs=None, steps=1, timeout=300):
         """
         Enable/Run the monitoring loop and wait for the monitoring steps completion.
@@ -651,6 +664,15 @@ class JobRegistry_Monitor(GangaThread):
         """
 
         log.debug("runMonitoring")
+        new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+        # stripProxy(self.registry_slice).objects.itervalues()
+        self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
+        # print(self.newly_discovered_jobs)
+        for i in self.newly_discovered_jobs:
+            j = stripProxy(self.registry_slice(i))
+            job_status = lazyLoadJobStatus(j)
+            if job_status in ['new']:
+                stripProxy(self.registry_slice).objects.repository.load([i])
 
         if not isType(steps, int) and steps < 0:
             log.warning("The number of monitor steps should be a positive (non-zero) integer")

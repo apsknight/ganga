@@ -217,7 +217,7 @@ class SubJobXMLList(GangaObject):
         try:
             from Ganga.Core.GangaRepository.PickleStreamer import to_file
             index_file = path.join(self._jobDirectory, self._subjob_master_index_name)
-            index_file_obj = open(index_file, "w")
+            index_file_obj = open(index_file, "wb")
             to_file(all_caches, index_file_obj)
             index_file_obj.close()
         ## Once I work out what the other exceptions here are I'll add them
@@ -361,64 +361,64 @@ class SubJobXMLList(GangaObject):
         """
         logger.debug("Requesting subjob: #%s" % index)
 
-        if index not in self._cachedJobs:
+        # if index not in self._cachedJobs:
 
-            logger.debug("Attempting to load subjob: #%s from disk" % index)
+        logger.debug("Attempting to load subjob: #%s from disk" % index)
 
-            # obtain a lock to make sure multiple loads of the same object don't happen
-            with self._load_lock:
+        # obtain a lock to make sure multiple loads of the same object don't happen
+        with self._load_lock:
 
-                # just make sure we haven't loaded this object already while waiting on the lock
-                if index in self._cachedJobs:
-                    return self._cachedJobs[index]
+            # just make sure we haven't loaded this object already while waiting on the lock
+            if index in self._cachedJobs:
+                return self._cachedJobs[index]
 
-                has_loaded_backup = False
+            has_loaded_backup = False
 
-                # Now try to load the subjob
-                if len(self) < index:
-                    raise GangaException("Subjob: %s does NOT exist" % index)
-                subjob_data = self.__get_dataFile(str(index))
+            # Now try to load the subjob
+            if len(self) < index:
+                raise GangaException("Subjob: %s does NOT exist" % index)
+            subjob_data = self.__get_dataFile(str(index))
+            try:
+                sj_file = self._loadSubJobFromDisk(subjob_data)
+            except (XMLFileError, IOError) as x:
+                logger.warning("Error loading XML file: %s" % x)
                 try:
+                    logger.debug("Loading subjob #%s for job #%s from disk, recent changes may be lost" % (index, self.getMasterID()))
+                    subjob_data = self.__get_dataFile(str(index), True)
                     sj_file = self._loadSubJobFromDisk(subjob_data)
-                except (XMLFileError, IOError) as x:
-                    logger.warning("Error loading XML file: %s" % x)
-                    try:
-                        logger.debug("Loading subjob #%s for job #%s from disk, recent changes may be lost" % (index, self.getMasterID()))
-                        subjob_data = self.__get_dataFile(str(index), True)
-                        sj_file = self._loadSubJobFromDisk(subjob_data)
-                        has_loaded_backup = True
-                    except (IOError, XMLFileError) as err:
-                        logger.debug("Error loading subjob XML:\n%s" % err)
-
-                        if isinstance(x, IOError) and x.errno == errno.ENOENT:
-                            raise IOError("Subobject %s not found: %s" % (index, x))
-                        else:
-                            raise RepositoryError(self,"IOError on loading subobject %s: %s" % (index, x))
-
-                from Ganga.Core.GangaRepository.VStreamer import from_file
-
-                # load the subobject into a temporary object
-                try:
-                    loaded_sj = from_file(sj_file)[0]
+                    has_loaded_backup = True
                 except (IOError, XMLFileError) as err:
+                    logger.debug("Error loading subjob XML:\n%s" % err)
 
-                    try:
-                        logger.warning("Loading subjob #%s for job #%s from backup, recent changes may be lost" % (index, self.getMasterID()))
-                        subjob_data = self.__get_dataFile(str(index), True)
-                        sj_file = self._loadSubJobFromDisk(subjob_data)
-                        loaded_sj = from_file(sj_file)[0]
-                        has_loaded_backup = True
-                    except (IOError, XMLFileError) as err:
-                        logger.debug("Failed to Load XML for job: %s using: %s" % (index, subjob_data))
-                        logger.debug("Err:\n%s" % err)
-                        raise
+                    if isinstance(x, IOError) and x.errno == errno.ENOENT:
+                        raise IOError("Subobject %s not found: %s" % (index, x))
+                    else:
+                        raise RepositoryError(self,"IOError on loading subobject %s: %s" % (index, x))
 
-                loaded_sj._setParent( self._definedParent )
-                if has_loaded_backup:
-                    loaded_sj._setDirty()
-                else:
-                    loaded_sj._setFlushed()
-                self._cachedJobs[index] = loaded_sj
+            from Ganga.Core.GangaRepository.VStreamer import from_file
+
+            # load the subobject into a temporary object
+            try:
+                loaded_sj = from_file(sj_file)[0]
+            except (IOError, XMLFileError) as err:
+
+                try:
+                    logger.warning("Loading subjob #%s for job #%s from backup, recent changes may be lost" % (index, self.getMasterID()))
+                    subjob_data = self.__get_dataFile(str(index), True)
+                    sj_file = self._loadSubJobFromDisk(subjob_data)
+                    loaded_sj = from_file(sj_file)[0]
+                    has_loaded_backup = True
+                except (IOError, XMLFileError) as err:
+                    logger.debug("Failed to Load XML for job: %s using: %s" % (index, subjob_data))
+                    logger.debug("Err:\n%s" % err)
+                    raise
+
+            loaded_sj._setParent( self._definedParent )
+            if has_loaded_backup:
+                loaded_sj._setDirty()
+            else:
+                loaded_sj._setFlushed()
+            self._cachedJobs[index] = loaded_sj
 
         return self._cachedJobs[index]
 

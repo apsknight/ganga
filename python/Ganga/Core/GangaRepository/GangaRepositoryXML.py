@@ -354,7 +354,7 @@ class GangaRepositoryLocal(GangaRepository):
             new_idx_cache = self.registry.getIndexCache(stripProxy(obj))
             if not os.path.exists(ifn) or shutdown:
                 new_cache = new_idx_cache
-                with open(ifn, "w") as this_file:
+                with open(ifn, "wb") as this_file:
                     new_index = (obj._category, getName(obj), new_cache)
                     logger.debug("Writing: %s" % str(new_index))
                     pickle_to_file(new_index, this_file)
@@ -503,7 +503,7 @@ class GangaRepositoryLocal(GangaRepository):
                     this_master_cache.append(cached_list)
 
             try:
-                with open(_master_idx, 'w') as of:
+                with open(_master_idx, 'wb') as of:
                     pickle_to_file(this_master_cache, of)
             except IOError as err:
                 logger.debug("write_master: %s" % err)
