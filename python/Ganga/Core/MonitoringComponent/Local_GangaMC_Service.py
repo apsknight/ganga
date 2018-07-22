@@ -652,7 +652,10 @@ class JobRegistry_Monitor(GangaThread):
             new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
             self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
             for job in self.newly_discovered_jobs:
-                stripProxy(self.registry_slice).objects.repository.load([int(job)])
+                try:
+                    stripProxy(self.registry_slice).objects.repository.load([int(job)])
+                except:
+                    pass
         return True
 
     def runMonitoring(self, jobs=None, steps=1, timeout=300):
@@ -678,7 +681,10 @@ class JobRegistry_Monitor(GangaThread):
             j = stripProxy(self.registry_slice(i))
             job_status = lazyLoadJobStatus(j)
             if job_status in ['new']:
-                stripProxy(self.registry_slice).objects.repository.load([i])
+                try:
+                    stripProxy(self.registry_slice).objects.repository.load([i])
+                except:
+                    pass
 
         if not isType(steps, int) and steps < 0:
             log.warning("The number of monitor steps should be a positive (non-zero) integer")
