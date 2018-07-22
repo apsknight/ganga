@@ -314,14 +314,14 @@ class UpdateDict(object):
         #log.debug("*----addEntry()")
 
         backend = getName(backendObj)
-        # if backend in self.table:
-            # backendObj, jSet, lock = self.table[backend].updateActionTuple()
-        # else:  # New backend.
-        self.table[backend] = _DictEntry(backendObj, jobList, threading.RLock(), timeoutMax)
-        # queue to get processed
-        Qin.put(JobAction(backendCheckingFunction, self.table[backend].updateActionTuple()))
-        log.debug("**Adding %s to new %s backend entry." % ([stripProxy(x).getFQID('.') for x in jobList], backend))
-        return True
+        if backend in self.table:
+            backendObj, jSet, lock = self.table[backend].updateActionTuple()
+        else:  # New backend.
+            self.table[backend] = _DictEntry(backendObj, jobList, threading.RLock(), timeoutMax)
+            # queue to get processed
+            Qin.put(JobAction(backendCheckingFunction, self.table[backend].updateActionTuple()))
+            log.debug("**Adding %s to new %s backend entry." % ([stripProxy(x).getFQID('.') for x in jobList], backend))
+            return True
 
         # backend is in Qin waiting to be processed. Increase it's list of jobs
         # by updating the table entry accordingly. This will reduce the
