@@ -638,7 +638,7 @@ class JobRegistry_Monitor(GangaThread):
         self.__updateTimeStamp = time.time()
         self.__sleepCounter = config['base_poll_rate']
 
-    def reloadJob(self, i):
+    def reloadJob(self, i=None):
         """
         Reload a Job from disk.
         Parameters:
@@ -646,7 +646,13 @@ class JobRegistry_Monitor(GangaThread):
         Return:
             True, if Job is successfully reloaded from disk.
         """
+        if i:
         stripProxy(self.registry_slice).objects.repository.load([i])
+        else:
+            new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+            self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
+            for job in self.newly_discovered_jobs:
+                stripProxy(self.registry_slice).objects.repository.load([int(job)])
         return True
 
     def runMonitoring(self, jobs=None, steps=1, timeout=300):
