@@ -647,7 +647,7 @@ class JobRegistry_Monitor(GangaThread):
             True, if Job is successfully reloaded from disk.
         """
         if i:
-        stripProxy(self.registry_slice).objects.repository.load([i])
+            stripProxy(self.registry_slice).objects.repository.load([i])
         else:
             new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
             self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
