@@ -77,7 +77,7 @@ class WorkerThreadPool(object):
         while not thread.should_stop():
             try:
                 item = self.__queue.get(True, 0.05)
-            except queue.Empty:
+            except:
                 # wait 0.05 sec then loop again to give shutdown a chance
                 continue
 
@@ -155,7 +155,10 @@ class WorkerThreadPool(object):
                 # unregister as a working thread bcoz free
                 thread._command = 'idle'
                 thread._timeout = 'N/A'
-                self.__queue.task_done()
+                try:
+                    self.__queue.task_done()
+                except:
+                    pass
                 thread.unregister()
 
             thread.gangaName = oldname
