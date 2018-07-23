@@ -753,8 +753,8 @@ class PackageConfig(object):
                 del self.options[o]
 
 try:
-    import configparser
-    GangaConfigParser = configparser.SafeConfigParser
+    import ConfigParser
+    GangaConfigParser = ConfigParser.SafeConfigParser
 except ImportError:
     # For Python 3
     import configparser as ConfigParser
