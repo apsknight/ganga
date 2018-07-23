@@ -758,7 +758,7 @@ try:
 except ImportError:
     # For Python 3
     import configparser as ConfigParser
-    GangaConfigParser = configparser.ConfigParser
+    GangaConfigParser = ConfigParser.ConfigParser
 
 
 def make_config_parser(system_vars):
