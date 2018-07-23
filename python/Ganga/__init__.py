@@ -3,7 +3,11 @@ import os
 import re
 import inspect
 import getpass
-import subprocess
+import sys
+if sys.version_info.major > 2:
+    import subprocess
+else:
+    import commands as subprocess
 from Ganga.Utility.ColourText import ANSIMarkup, overview_colours
 
 
