@@ -545,6 +545,14 @@ class JobRegistry_Monitor(GangaThread):
         while self.alive:
             checkHeartBeat(JobRegistry_Monitor.global_count)
             log.debug("Monitoring Loop is alive")
+            # Monitor Jobs from other session
+            new_jobs = stripProxy(self.registry_slice).objects.repository.update_index(True, True)
+            self.newly_discovered_jobs = list(set(self.newly_discovered_jobs) | set(new_jobs))
+            for i in self.newly_discovered_jobs:
+                j = stripProxy(self.registry_slice(i))
+                job_status = lazyLoadJobStatus(j)
+                if job_status in ['new']:
+                    stripProxy(self.registry_slice).objects.repository.load([i])
             # synchronize the main loop since we can get disable requests
             with self.__mainLoopCond:
                 log.debug("Monitoring loop __mainLoopCond")
