@@ -115,7 +115,8 @@ class Condor(IBackend):
         "globus_rsl": SimpleItem(defvalue="",
                                  doc="Globus RSL settings (for Condor-G submission)"),
         "accounting_group": SimpleItem(defvalue='', doc="Provide an accounting group for this job."),
-        "cdf_options": SimpleItem(defvalue={}, doc="Additional options to set in the CDF file given by a dictionary")
+        "cdf_options": SimpleItem(defvalue={}, doc="Additional options to set in the CDF file given by a dictionary"),
+        "spool": SimpleItem(defvalue=False, doc="Add spool flag in condor_submit")
     })
 
     _category = "backends"
@@ -156,7 +157,10 @@ class Condor(IBackend):
             Return value: True if job is submitted successfully,
                           or False otherwise"""
 
-        commandList = ["condor_submit -v"]
+        if self.spool:
+            commandList = ["condor_submit -v -spool"]
+        else:
+            commandList = ["condor_submit -v"]
         commandList.extend(self.submit_options)
         commandList.append(cdfpath)
         commandString = " ".join(commandList)
