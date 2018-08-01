@@ -66,7 +66,7 @@ log_config.addOption('Ganga.GPIDev', "INFO", "logger of Ganga.GPIDev.* packages"
 log_config.addOption('Ganga.Utility.logging', "WARNING", "logger of the Ganga logging package itself (use with care!)")
 log_config.addOption('_format', "NORMAL", "format of logging messages: TERSE,NORMAL,VERBOSE,DEBUG")
 log_config.addOption('_colour', True, "enable ASCII colour formatting of messages e.g. errors in red")
-log_config.addOption('_logfile', "~/ganga-monitoring.log", "location of the logfile")
+log_config.addOption('_logfile', "~/ganga-monitoring.txt", "location of the logfile")
 log_config.addOption('_logfile_size', 100000,
                  "the size of the logfile (in bytes), the rotating log will never exceed this file size")  # 100 K
 log_config.addOption('_interactive_cache', True,
