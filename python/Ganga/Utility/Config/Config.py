@@ -757,8 +757,8 @@ try:
     GangaConfigParser = ConfigParser.SafeConfigParser
 except ImportError:
     # For Python 3
-    import configparser as ConfigParser
-    GangaConfigParser = ConfigParser.ConfigParser
+    import configparser
+    GangaConfigParser = configparser.ConfigParser
 
 
 def make_config_parser(system_vars):
